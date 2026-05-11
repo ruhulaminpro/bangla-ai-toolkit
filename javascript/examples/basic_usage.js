@@ -1,31 +1,33 @@
-import { BanglaAI } from "../src/index.js";
+import { BanglaAI, text } from "../src/index.js";
 
-const ai = new BanglaAI({ apiKey: process.env.OPENAI_API_KEY });
+// ── Text utilities (zero deps) ─────────────────────────────────────────────────
+const raw = "বাংলাদেশ   দক্ষিণ এশিয়ার একটি দেশ।  এর রাজধানী ঢাকা।";
 
-const text =
-  "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। " +
-  "বাংলাদেশের মোট জনসংখ্যা প্রায় ১৭ কোটি। " +
-  "দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে।";
+console.log("=== Text Utilities ===");
+const normalized = text.normalize(raw);
+const tokens = text.tokenize(normalized);
+console.log("normalized :", normalized);
+console.log("tokens     :", tokens);
+console.log("sentences  :", text.sentTokenize(normalized));
+console.log("filtered   :", text.removeStopwords(tokens));
+console.log("stems      :", text.stemTokens(text.removeStopwords(tokens)));
+console.log();
 
-// Summarization
+// ── HuggingFace backend (free, set HF_TOKEN env var) ──────────────────────────
+// const ai = new BanglaAI();  // backend: "huggingface"
+
+// ── OpenAI backend ────────────────────────────────────────────────────────────
+const ai = new BanglaAI({ backend: "openai", apiKey: process.env.OPENAI_API_KEY });
+
+const passage =
+  "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে।";
+
 console.log("=== Summarization ===");
-console.log(await ai.summarize.call(text, { maxSentences: 2 }));
-console.log();
+console.log(await ai.summarize(passage, { maxSentences: 1 }));
 
-// Question Answering
-const context =
-  "রবীন্দ্রনাথ ঠাকুর ১৮৬১ সালে কলকাতায় জন্মগ্রহণ করেন। " +
-  "তিনি ১৯১৩ সালে সাহিত্যে নোবেল পুরস্কার লাভ করেন।";
+console.log("\n=== Question Answering ===");
+console.log(await ai.qa(passage, "বাংলাদেশের রাজধানী কোথায়?"));
 
-console.log("=== Question Answering ===");
-console.log(await ai.qa.call(context, "রবীন্দ্রনাথ কোথায় জন্মগ্রহণ করেন?"));
-console.log();
-
-// Sentiment Analysis
-console.log("=== Sentiment Analysis ===");
-const result = await ai.sentiment.call(
-  "আজকের দিনটি অসাধারণ ছিল! সব কিছু ভালো হয়েছে।"
-);
-console.log(`Label: ${result.label}`);
-console.log(`Score: ${result.score.toFixed(2)}`);
-console.log(`Explanation: ${result.explanation}`);
+console.log("\n=== Sentiment ===");
+const r = await ai.sentiment("আজকের দিনটি অসাধারণ ছিল!");
+console.log(`label: ${r.label}  score: ${r.score.toFixed(2)}`);

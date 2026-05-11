@@ -1,21 +1,27 @@
 {
   "name": "bangla-ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI-powered NLP toolkit for the Bengali language",
   "main": "src/index.js",
   "type": "module",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./text": "./src/text/index.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "example": "node examples/basic_usage.js"
   },
-  "keywords": ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "question-answering"],
+  "keywords": ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "huggingface", "openai"],
   "author": "LXNotes <hello@lxnotes.com>",
   "license": "MIT",
-  "dependencies": {
-    "openai": "^4.52.0"
+  "peerDependencies": {
+    "openai": ">=4.0.0",
+    "@huggingface/inference": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "openai": { "optional": true },
+    "@huggingface/inference": { "optional": true }
   },
   "devDependencies": {
     "jest": "^29.0.0",
@@ -23,7 +29,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lxnotes/bangla-ai-toolkit.git"
-  },
-  "homepage": "https://github.com/lxnotes/bangla-ai-toolkit"
+    "url": "https://github.com/ruhulaminpro/bangla-ai-toolkit.git"
+  }
 }

@@ -1,18 +1,27 @@
-import OpenAI from "openai";
-import { Summarizer } from "./summarizer.js";
-import { QA } from "./qa.js";
-import { Sentiment } from "./sentiment.js";
+import { OpenAIBackend } from "./backends/openai.js";
+import { HuggingFaceBackend } from "./backends/hf.js";
 
 export class BanglaAI {
   /**
-   * @param {object} [options]
-   * @param {string} [options.apiKey]  OpenAI API key (falls back to OPENAI_API_KEY env)
-   * @param {string} [options.model]   Model to use (default: "gpt-4o-mini")
+   * @param {{
+   *   backend?: "openai" | "huggingface" | object,
+   *   apiKey?: string,
+   *   model?: string,
+   * }} [opts]
    */
-  constructor({ apiKey, model = "gpt-4o-mini" } = {}) {
-    const client = new OpenAI({ apiKey });
-    this.summarize = new Summarizer(client, model);
-    this.qa = new QA(client, model);
-    this.sentiment = new Sentiment(client, model);
+  constructor({ backend = "huggingface", apiKey, model } = {}) {
+    if (typeof backend === "object") {
+      this._backend = backend;
+    } else if (backend === "openai") {
+      this._backend = new OpenAIBackend({ apiKey, model });
+    } else if (backend === "huggingface") {
+      this._backend = new HuggingFaceBackend({ apiKey });
+    } else {
+      throw new Error(`Unknown backend: "${backend}". Use "openai" or "huggingface".`);
+    }
   }
+
+  summarize(text, opts) { return this._backend.summarize(text, opts); }
+  qa(context, question, opts) { return this._backend.qa(context, question, opts); }
+  sentiment(text) { return this._backend.sentiment(text); }
 }

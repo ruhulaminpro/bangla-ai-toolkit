@@ -4,12 +4,12 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "bangla-ai"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-powered NLP toolkit for the Bengali language"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "LXNotes", email = "hello@lxnotes.com" }]
-keywords = ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "question-answering"]
+keywords = ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "question-answering", "huggingface"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -19,17 +19,22 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Text Processing :: Linguistic",
+    "Natural Language :: Bengali",
 ]
 requires-python = ">=3.10"
-dependencies = ["openai>=1.30"]
+# Core has zero ML dependencies — text utilities work out of the box
+dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio", "python-dotenv"]
+transformers = ["transformers>=4.40", "torch>=2.0"]
+openai = ["openai>=1.30"]
+all = ["bangla-ai[transformers,openai]"]
+dev = ["pytest>=8", "python-dotenv", "bangla-ai[all]"]
 
 [project.urls]
-Homepage = "https://github.com/lxnotes/bangla-ai-toolkit"
-Repository = "https://github.com/lxnotes/bangla-ai-toolkit"
-Issues = "https://github.com/lxnotes/bangla-ai-toolkit/issues"
+Homepage = "https://github.com/ruhulaminpro/bangla-ai-toolkit"
+Repository = "https://github.com/ruhulaminpro/bangla-ai-toolkit"
+Issues = "https://github.com/ruhulaminpro/bangla-ai-toolkit/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -1,20 +1,27 @@
 # bangla-ai-toolkit
 
-AI-powered NLP toolkit for the Bengali language — **summarization, question answering, and sentiment analysis** in both Python and JavaScript.
+AI-powered NLP toolkit for the Bengali language — **model-agnostic, zero-dependency text utilities, and pluggable ML backends**.
 
-Bengali (বাংলা) is spoken by 230+ million people yet remains severely underrepresented in AI tooling. This toolkit bridges that gap using OpenAI models with prompts optimized for Bengali text.
+Bengali (বাংলা) is spoken by 230+ million people yet remains severely underrepresented in AI tooling. This toolkit fills real gaps:
+
+- **Bengali text utilities** that work with zero ML dependencies (normalize, tokenize, stopwords, stemmer)
+- **Free ML backend** via HuggingFace Transformers / Inference API
+- **OpenAI backend** as a paid, higher-quality upgrade
+- **Python + JavaScript** — works in any stack
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Summarization** | Condense long Bengali passages into key points |
-| **Question Answering** | Extract answers from Bengali context passages |
-| **Sentiment Analysis** | Classify text as positive / negative / neutral with confidence score |
-| **Bilingual output** | Respond in Bengali or English |
-| **Python + JavaScript** | Use in any stack |
+| | Description | Requires |
+|---|---|---|
+| `text.normalize` | Unicode NFC, zero-width char removal, punctuation normalization | nothing |
+| `text.tokenize` | Word & sentence tokenizer for Bengali text | nothing |
+| `text.stopwords` | 150+ curated Bengali stopwords + `remove_stopwords()` | nothing |
+| `text.stem` | Suffix-stripping stemmer (verbal + nominal inflections) | nothing |
+| `BanglaAI.summarize` | Summarize Bengali passages | HF or OpenAI |
+| `BanglaAI.qa` | Question answering from Bengali context | HF or OpenAI |
+| `BanglaAI.sentiment` | Positive / negative / neutral classification | HF or OpenAI |
 
 ---
 
@@ -23,36 +30,73 @@ Bengali (বাংলা) is spoken by 230+ million people yet remains severely 
 ### Install
 
 ```bash
+# Text utilities only — zero dependencies
 pip install bangla-ai
+
+# With HuggingFace backend (free, works offline after first download)
+pip install "bangla-ai[transformers]"
+
+# With OpenAI backend
+pip install "bangla-ai[openai]"
+
+# Everything
+pip install "bangla-ai[all]"
 ```
 
-### Usage
+### Text utilities
 
 ```python
-import os
+from bangla_ai import text
+
+raw = "বাংলাদেশ   দক্ষিণ এশিয়ার একটি দেশ।  এর রাজধানী ঢাকা।"
+
+normalized = text.normalize(raw)
+# "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা।"
+
+tokens = text.tokenize(normalized)
+# ['বাংলাদেশ', 'দক্ষিণ', 'এশিয়ার', 'একটি', 'দেশ', 'এর', 'রাজধানী', 'ঢাকা']
+
+sents = text.sent_tokenize(normalized)
+# ['বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ', 'এর রাজধানী ঢাকা']
+
+filtered = text.remove_stopwords(tokens)
+# ['বাংলাদেশ', 'দক্ষিণ', 'এশিয়ার', 'দেশ', 'রাজধানী', 'ঢাকা']
+
+stems = text.stem_tokens(filtered)
+# করেছেন -> কর | বাংলাদেশের -> বাংলাদেশ | যাচ্ছে -> যা
+```
+
+### ML tasks
+
+```python
 from bangla_ai import BanglaAI
 
-ai = BanglaAI(api_key=os.environ["OPENAI_API_KEY"])
+# Free — HuggingFace models (downloaded on first use)
+ai = BanglaAI()
 
-# Summarization
-text = "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে।"
-print(ai.summarize(text, max_sentences=2))
+# Paid — OpenAI API
+ai = BanglaAI(backend="openai", api_key="sk-...")
 
-# Question Answering
-context = "রবীন্দ্রনাথ ঠাকুর ১৮৬১ সালে কলকাতায় জন্মগ্রহণ করেন। তিনি ১৯১৩ সালে নোবেল পুরস্কার পান।"
-print(ai.qa(context, "রবীন্দ্রনাথ কোথায় জন্মগ্রহণ করেন?"))
+passage = "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে।"
 
-# Sentiment Analysis
+print(ai.summarize(passage, max_sentences=1))
+print(ai.qa(passage, "বাংলাদেশের রাজধানী কোথায়?"))
+
 result = ai.sentiment("আজকের দিনটি অসাধারণ ছিল!")
 print(result["label"])   # "positive"
 print(result["score"])   # 0.97
 ```
 
-### Run tests
+### Tests
 
 ```bash
-cd python
-OPENAI_API_KEY=sk-... pytest tests/
+cd python && pip install -e ".[dev]"
+
+# No API key needed
+pytest tests/test_text.py -v
+
+# With OpenAI
+OPENAI_API_KEY=sk-... pytest tests/ -v
 ```
 
 ---
@@ -63,80 +107,87 @@ OPENAI_API_KEY=sk-... pytest tests/
 
 ```bash
 npm install bangla-ai
+
+# Optional backends
+npm install @huggingface/inference   # free
+npm install openai                   # paid
 ```
 
-### Usage
+### Text utilities
+
+```js
+import { text } from "bangla-ai";
+
+const tokens = text.tokenize("আমি বাংলায় কথা বলি।");
+const filtered = text.removeStopwords(tokens);
+const stems = text.stemTokens(filtered);
+```
+
+### ML tasks
 
 ```js
 import { BanglaAI } from "bangla-ai";
 
-const ai = new BanglaAI({ apiKey: process.env.OPENAI_API_KEY });
+// Free — HuggingFace Inference API
+const ai = new BanglaAI({ apiKey: process.env.HF_TOKEN });
 
-// Summarization
-const text = "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা।";
-console.log(await ai.summarize.call(text, { maxSentences: 1 }));
+// Paid — OpenAI
+const ai = new BanglaAI({ backend: "openai", apiKey: process.env.OPENAI_API_KEY });
 
-// Question Answering
-const context = "রবীন্দ্রনাথ ঠাকুর ১৮৬১ সালে কলকাতায় জন্মগ্রহণ করেন।";
-console.log(await ai.qa.call(context, "Tagore was born where?", { language: "english" }));
+const passage = "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা।";
+console.log(await ai.summarize(passage, { maxSentences: 1 }));
 
-// Sentiment
-const result = await ai.sentiment.call("আজকের দিনটি অসাধারণ ছিল!");
-console.log(result.label);  // "positive"
-```
-
-### Run tests
-
-```bash
-cd javascript
-npm install
-OPENAI_API_KEY=sk-... npm test
+const r = await ai.sentiment("আজকের দিনটি অসাধারণ ছিল!");
+console.log(r.label, r.score);
 ```
 
 ---
 
-## Models
+## HuggingFace models used
 
-Default model: `gpt-4o-mini` (fast, cheap).  
-Swap to `gpt-4o` for higher accuracy:
+| Task | Model |
+|---|---|
+| Summarization | `csebuetnlp/mT5_multilingual_XLSum` |
+| Question Answering | `deepset/xlm-roberta-base-squad2` |
+| Sentiment | `nlptown/bert-base-multilingual-uncased-sentiment` |
 
-```python
-ai = BanglaAI(model="gpt-4o")
-```
+Swap models at construction time via `summarizerModel`, `qaModel`, `sentimentModel` params.
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 bangla-ai-toolkit/
 ├── python/
-│   ├── bangla_ai/        # Python package
-│   ├── tests/            # pytest test suite
-│   ├── examples/         # Usage examples
+│   ├── bangla_ai/
+│   │   ├── text/         # normalize, tokenize, stopwords, stem
+│   │   ├── backends/     # hf.py, openai.py (lazy-loaded)
+│   │   └── core.py
+│   ├── tests/
 │   └── pyproject.toml
 ├── javascript/
-│   ├── src/              # ES module package
-│   ├── tests/            # Jest test suite
-│   ├── examples/         # Usage examples
+│   ├── src/
+│   │   ├── text/
+│   │   ├── backends/
+│   │   └── client.js
+│   ├── tests/
 │   └── package.json
-├── docs/
-│   └── API.md            # Full API reference
-└── LICENSE               # MIT
+└── docs/API.md
 ```
 
 ---
 
 ## Contributing
 
-Pull requests welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). PRs especially welcome for:
+- More Bengali stopwords / stemmer rules
+- New HuggingFace model integrations
+- Bengali NER support
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
----
-
-Built with ♥ by [LXNotes](https://lxnotes.com) to support Bengali language AI.
+MIT — see [LICENSE](LICENSE).  
+Built by [LXNotes](https://lxnotes.com) to support Bengali language AI.

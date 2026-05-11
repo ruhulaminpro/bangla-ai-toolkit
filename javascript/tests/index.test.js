@@ -1,49 +1,53 @@
-import { describe, test, expect, beforeAll } from "@jest/globals";
-import { BanglaAI } from "../src/index.js";
+import { describe, test, expect } from "@jest/globals";
+import { text } from "../src/index.js";
 
-const CONTEXT =
-  "রবীন্দ্রনাথ ঠাকুর ১৮৬১ সালে কলকাতায় জন্মগ্রহণ করেন। " +
-  "তিনি ১৯১৩ সালে সাহিত্যে নোবেল পুরস্কার লাভ করেন।";
-
-let ai;
-
-beforeAll(() => {
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("OPENAI_API_KEY not set — skipping live tests");
-  }
-  ai = new BanglaAI({ apiKey: process.env.OPENAI_API_KEY });
-});
-
-describe("Summarizer", () => {
-  test("returns non-empty string", async () => {
-    if (!process.env.OPENAI_API_KEY) return;
-    const result = await ai.summarize.call(CONTEXT, { maxSentences: 1 });
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
+describe("text.normalize", () => {
+  test("collapses multiple spaces", () => {
+    expect(text.normalize("বাংলা  টেক্সট")).toBe("বাংলা টেক্সট");
+  });
+  test("strips zero-width characters", () => {
+    expect(text.normalize("বাংলা​টেক্সট")).not.toContain("​");
   });
 });
 
-describe("QA", () => {
-  test("answers question from context", async () => {
-    if (!process.env.OPENAI_API_KEY) return;
-    const answer = await ai.qa.call(
-      CONTEXT,
-      "When was Tagore born?",
-      { language: "english" }
-    );
-    expect(answer).toContain("1861");
+describe("text.tokenize", () => {
+  test("returns word tokens, drops punctuation", () => {
+    const tokens = text.tokenize("আমি বাংলায় কথা বলি।");
+    expect(tokens).toContain("আমি");
+    expect(tokens).toContain("বাংলায়");
+    expect(tokens).not.toContain("।");
+  });
+  test("handles mixed script", () => {
+    const tokens = text.tokenize("LXNotes ২০২৪ সালে শুরু হয়।");
+    expect(tokens).toContain("LXNotes");
+    expect(tokens).toContain("২০২৪");
   });
 });
 
-describe("Sentiment", () => {
-  test("classifies positive text", async () => {
-    if (!process.env.OPENAI_API_KEY) return;
-    const result = await ai.sentiment.call(
-      "আজকের দিনটি অসাধারণ ছিল! আমি খুব খুশি।"
-    );
-    expect(result.label).toBe("positive");
-    expect(typeof result.score).toBe("number");
-    expect(result.score).toBeGreaterThanOrEqual(0);
-    expect(result.score).toBeLessThanOrEqual(1);
+describe("text.sentTokenize", () => {
+  test("splits on daṇḍa", () => {
+    const sents = text.sentTokenize("আমি বাংলায় কথা বলি। তুমি কেমন আছ?");
+    expect(sents.length).toBe(2);
+  });
+});
+
+describe("text.removeStopwords", () => {
+  test("removes known stopwords", () => {
+    const tokens = text.tokenize("আমি বাংলাদেশে যাই।");
+    const filtered = text.removeStopwords(tokens);
+    expect(filtered).not.toContain("আমি");
+    expect(filtered).toContain("বাংলাদেশে");
+  });
+});
+
+describe("text.stem", () => {
+  test("strips verbal suffix", () => {
+    expect(text.stem("করেছেন")).toBe("কর");
+  });
+  test("strips nominal suffix", () => {
+    expect(text.stem("বাংলাদেশের")).toBe("বাংলাদেশ");
+  });
+  test("no change for short words", () => {
+    expect(text.stem("বই")).toBe("বই");
   });
 });

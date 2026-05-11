@@ -1,10 +1,10 @@
-"""Tests for Summarizer — require OPENAI_API_KEY env var."""
+"""Summarizer tests — require OPENAI_API_KEY for openai backend."""
 
 import os
 import pytest
 from bangla_ai import BanglaAI
 
-SAMPLE_TEXT = (
+SAMPLE = (
     "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। "
     "বাংলাদেশের মোট জনসংখ্যা প্রায় ১৭ কোটি। "
     "দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে। "
@@ -13,20 +13,18 @@ SAMPLE_TEXT = (
 
 
 @pytest.fixture
-def ai():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+def openai_ai():
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
         pytest.skip("OPENAI_API_KEY not set")
-    return BanglaAI(api_key=api_key)
+    return BanglaAI(backend="openai", api_key=key)
 
 
-def test_summarize_bengali(ai):
-    result = ai.summarize(SAMPLE_TEXT, max_sentences=2)
-    assert isinstance(result, str)
-    assert len(result) > 0
+def test_summarize_openai(openai_ai):
+    result = openai_ai.summarize(SAMPLE, max_sentences=2)
+    assert isinstance(result, str) and len(result) > 0
 
 
-def test_summarize_english_output(ai):
-    result = ai.summarize(SAMPLE_TEXT, max_sentences=2, language="english")
-    assert isinstance(result, str)
-    assert len(result) > 0
+def test_summarize_english_output(openai_ai):
+    result = openai_ai.summarize(SAMPLE, max_sentences=2, language="english")
+    assert isinstance(result, str) and len(result) > 0

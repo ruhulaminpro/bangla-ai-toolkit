@@ -1,32 +1,52 @@
-"""Basic usage examples for bangla-ai."""
+"""bangla-ai usage examples."""
 
 import os
+
+# ── 1. Text utilities — zero dependencies ──────────────────────────────────────
+from bangla_ai import text
+
+raw = "বাংলাদেশ   দক্ষিণ এশিয়ার একটি দেশ।  এর রাজধানী ঢাকা।"
+
+normalized = text.normalize(raw)
+tokens = text.tokenize(normalized)
+sentences = text.sent_tokenize(normalized)
+filtered = text.remove_stopwords(tokens)
+stems = text.stem_tokens(filtered)
+
+print("=== Text Utilities ===")
+print("Normalized :", normalized)
+print("Tokens     :", tokens)
+print("Sentences  :", sentences)
+print("Filtered   :", filtered)
+print("Stems      :", stems)
+print()
+
+# ── 2. HuggingFace backend (free) ──────────────────────────────────────────────
+# Uncomment after: pip install bangla-ai[transformers]
+#
+# from bangla_ai import BanglaAI
+# ai = BanglaAI()  # downloads models on first run
+# ...
+
+# ── 3. OpenAI backend ──────────────────────────────────────────────────────────
 from bangla_ai import BanglaAI
 
-ai = BanglaAI(api_key=os.environ["OPENAI_API_KEY"])
+ai = BanglaAI(backend="openai", api_key=os.environ["OPENAI_API_KEY"])
 
-# ── Summarization ──────────────────────────────────────────────────────────────
-text = (
+passage = (
     "বাংলাদেশ দক্ষিণ এশিয়ার একটি দেশ। এর রাজধানী ঢাকা। "
-    "বাংলাদেশের মোট জনসংখ্যা প্রায় ১৭ কোটি। "
     "দেশটি ১৯৭১ সালে স্বাধীনতা লাভ করে।"
 )
+
 print("=== Summarization ===")
-print(ai.summarize(text, max_sentences=2))
+print(ai.summarize(passage, max_sentences=1))
 print()
 
-# ── Question Answering ─────────────────────────────────────────────────────────
-context = (
-    "রবীন্দ্রনাথ ঠাকুর ১৮৬১ সালে কলকাতায় জন্মগ্রহণ করেন। "
-    "তিনি ১৯১৩ সালে সাহিত্যে নোবেল পুরস্কার লাভ করেন।"
-)
 print("=== Question Answering ===")
-print(ai.qa(context, "রবীন্দ্রনাথ কোথায় জন্মগ্রহণ করেন?"))
+print(ai.qa(passage, "বাংলাদেশের রাজধানী কোথায়?"))
 print()
 
-# ── Sentiment Analysis ─────────────────────────────────────────────────────────
 print("=== Sentiment Analysis ===")
-result = ai.sentiment("আজকের দিনটি অসাধারণ ছিল! সব কিছু ভালো হয়েছে।")
-print(f"Label: {result['label']}")
-print(f"Score: {result['score']:.2f}")
-print(f"Explanation: {result['explanation']}")
+r = ai.sentiment("আজকের দিনটি অসাধারণ ছিল!")
+print(f"Label: {r['label']}  Score: {r['score']:.2f}")
+print(f"Explanation: {r['explanation']}")
