@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "bangla-ai"
+version = "0.1.0"
+description = "AI-powered NLP toolkit for the Bengali language"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "LXNotes", email = "hello@lxnotes.com" }]
+keywords = ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "question-answering"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Linguistic",
+]
+requires-python = ">=3.10"
+dependencies = ["openai>=1.30"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio", "python-dotenv"]
+
+[project.urls]
+Homepage = "https://github.com/lxnotes/bangla-ai-toolkit"
+Repository = "https://github.com/lxnotes/bangla-ai-toolkit"
+Issues = "https://github.com/lxnotes/bangla-ai-toolkit/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bangla_ai*"]

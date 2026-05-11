@@ -1,0 +1,29 @@
+{
+  "name": "bangla-ai",
+  "version": "0.1.0",
+  "description": "AI-powered NLP toolkit for the Bengali language",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "example": "node examples/basic_usage.js"
+  },
+  "keywords": ["bengali", "bangla", "nlp", "ai", "summarization", "sentiment", "question-answering"],
+  "author": "LXNotes <hello@lxnotes.com>",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.52.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "@jest/globals": "^29.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lxnotes/bangla-ai-toolkit.git"
+  },
+  "homepage": "https://github.com/lxnotes/bangla-ai-toolkit"
+}
