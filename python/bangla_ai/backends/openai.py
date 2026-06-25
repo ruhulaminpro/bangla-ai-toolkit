@@ -19,6 +19,12 @@ _SENT_SYSTEM = (
     "\"score\": 0.0-1.0, \"explanation\": \"one sentence in Bengali\"}. "
     "Only JSON, no markdown."
 )
+_NER_SYSTEM = (
+    "You are a Bengali named-entity recognition system. "
+    "Extract entities and return JSON of the form "
+    "{\"entities\": [{\"text\": \"...\", \"type\": \"PER|LOC|ORG|MISC\"}]}. "
+    "Use the exact surface form from the text. Only JSON, no markdown."
+)
 
 
 class OpenAIBackend(Backend):
@@ -30,7 +36,12 @@ class OpenAIBackend(Backend):
         model: Chat model to use (default: gpt-4o-mini).
     """
 
-    def __init__(self, api_key: str | None = None, model: str = "gpt-4o-mini"):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "gpt-4o-mini",
+        embedding_model: str = "text-embedding-3-small",
+    ):
         try:
             from openai import OpenAI
         except ImportError as e:
@@ -39,6 +50,7 @@ class OpenAIBackend(Backend):
             ) from e
         self._client = OpenAI(api_key=api_key)
         self._model = model
+        self._embedding_model = embedding_model
 
     def _chat(self, system: str, user: str, temperature: float = 0.3, json_mode: bool = False) -> str:
         kwargs: dict = dict(
@@ -63,3 +75,13 @@ class OpenAIBackend(Backend):
     def sentiment(self, text: str) -> dict[str, str | float]:
         raw = self._chat(_SENT_SYSTEM, text, temperature=0.0, json_mode=True)
         return json.loads(raw)
+
+    def ner(self, text: str) -> list[dict[str, str | float]]:
+        raw = self._chat(_NER_SYSTEM, text, temperature=0.0, json_mode=True)
+        return json.loads(raw).get("entities", [])
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        if isinstance(texts, str):
+            texts = [texts]
+        resp = self._client.embeddings.create(model=self._embedding_model, input=texts)
+        return [item.embedding for item in resp.data]

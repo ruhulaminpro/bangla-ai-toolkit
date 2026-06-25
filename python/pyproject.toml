@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bangla-ai"
-version = "0.2.0"
+version = "0.3.0"
 description = "AI-powered NLP toolkit for the Bengali language"
 readme = "README.md"
 license = { text = "MIT" }
@@ -36,6 +36,12 @@ Homepage = "https://github.com/ruhulaminpro/bangla-ai-toolkit"
 Repository = "https://github.com/ruhulaminpro/bangla-ai-toolkit"
 Issues = "https://github.com/ruhulaminpro/bangla-ai-toolkit/issues"
 
+[project.scripts]
+bangla-ai = "bangla_ai.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["bangla_ai*"]
+
+[tool.setuptools.package-data]
+bangla_ai = ["py.typed"]

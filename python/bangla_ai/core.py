@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from .backends.base import Backend
+from .semantic import rank_by_similarity
 
 
 class BanglaAI:
@@ -63,3 +64,45 @@ class BanglaAI:
             "score" (0.0–1.0), and "explanation".
         """
         return self._backend.sentiment(text)
+
+    def ner(self, text: str) -> list[dict[str, str | float]]:
+        """Extract named entities from Bengali text.
+
+        Returns:
+            List of dicts with keys "text", "type" (PER/LOC/ORG/MISC),
+            and "score".
+        """
+        return self._backend.ner(text)
+
+    def embed(self, texts: str | list[str]) -> list[list[float]]:
+        """Embed one or more strings into vectors.
+
+        Args:
+            texts: A single string or a list of strings.
+
+        Returns:
+            A list of embedding vectors (one per input string).
+        """
+        if isinstance(texts, str):
+            texts = [texts]
+        return self._backend.embed(texts)
+
+    def semantic_search(
+        self, query: str, documents: list[str], *, top_k: int = 5
+    ) -> list[dict[str, object]]:
+        """Rank documents by semantic similarity to a query.
+
+        Embeds the query and documents with the active backend, then ranks by
+        cosine similarity.
+
+        Returns:
+            Up to ``top_k`` dicts with keys "document", "score", and "index",
+            highest score first.
+        """
+        vectors = self._backend.embed([query, *documents])
+        query_vec, doc_vecs = vectors[0], vectors[1:]
+        ranked = rank_by_similarity(query_vec, doc_vecs)
+        return [
+            {"document": documents[i], "score": round(score, 4), "index": i}
+            for i, score in ranked[:top_k]
+        ]

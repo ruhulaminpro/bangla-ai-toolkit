@@ -53,6 +53,35 @@ console.log(await ai.summarize(passage, { maxSentences: 1 }));
 
 const r = await ai.sentiment("আজকের দিনটি অসাধারণ ছিল!");
 console.log(r.label, r.score);
+
+// Named entity recognition
+await ai.ner("ড. মুহাম্মদ ইউনূস ঢাকায় জন্মগ্রহণ করেন।");
+// [{ text: "মুহাম্মদ ইউনূস", type: "PER", ... }, { text: "ঢাকা", type: "LOC", ... }]
+
+// Semantic search
+await ai.semanticSearch("দেশের রাজধানী", ["ঢাকা বাংলাদেশের রাজধানী।", "আমি ভাত খাই।"], { topK: 1 });
+// [{ document: "ঢাকা বাংলাদেশের রাজধানী।", score: 0.82, index: 0 }]
+```
+
+TypeScript types ship with the package (`index.d.ts`).
+
+## Transliteration & numerals (no backend)
+
+```js
+import { text } from "bangla-ai";
+
+text.toLatin("বাংলাদেশ");        // 'bangladesh'
+text.toBengali("bangla");        // 'বাংলা'
+text.toEnglishDigits("২০২৪");    // '2024'
+text.toBengaliDigits("2024");    // '২০২৪'
+```
+
+## Command line
+
+```bash
+bangla-ai translit --to latin "বাংলাদেশ"
+bangla-ai digits --to bn "2024"
+echo "ঢাকা একটি শহর।" | bangla-ai tokenize -
 ```
 
 ## Tests

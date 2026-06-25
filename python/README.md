@@ -71,6 +71,35 @@ print(result["label"], result["score"])   # "positive" 0.97
 | `BanglaAI.summarize` | Summarize Bengali passages | HF or OpenAI |
 | `BanglaAI.qa` | Question answering from context | HF or OpenAI |
 | `BanglaAI.sentiment` | Positive / negative / neutral | HF or OpenAI |
+| `BanglaAI.ner` | Named entity recognition | HF or OpenAI |
+| `BanglaAI.embed` / `BanglaAI.semantic_search` | Embeddings & semantic search | HF or OpenAI |
+
+```python
+ai.ner("ড. মুহাম্মদ ইউনূস ঢাকায় জন্মগ্রহণ করেন।")
+# [{"text": "মুহাম্মদ ইউনূস", "type": "PER", ...}, {"text": "ঢাকা", "type": "LOC", ...}]
+
+ai.semantic_search("দেশের রাজধানী", ["ঢাকা বাংলাদেশের রাজধানী।", "আমি ভাত খাই।"], top_k=1)
+# [{"document": "ঢাকা বাংলাদেশের রাজধানী।", "score": 0.82, "index": 0}]
+```
+
+## Transliteration & numerals (no API key)
+
+```python
+from bangla_ai import text
+
+text.to_latin("বাংলাদেশ")        # 'bangladesh'
+text.to_bengali("bangla")        # 'বাংলা'
+text.to_english_digits("২০২৪")   # '2024'
+text.to_bengali_digits("2024")   # '২০২৪'
+```
+
+## Command line
+
+```bash
+bangla-ai translit --to latin "বাংলাদেশ"
+bangla-ai digits --to bn "2024"
+bangla-ai sentiment "আজকের দিনটি অসাধারণ ছিল!" --backend openai --api-key sk-...
+```
 
 ## HuggingFace models used
 

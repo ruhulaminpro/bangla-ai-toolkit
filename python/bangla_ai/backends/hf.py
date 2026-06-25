@@ -7,6 +7,8 @@ from .base import Backend
 _DEFAULT_SUMMARIZER = "csebuetnlp/mT5_multilingual_XLSum"
 _DEFAULT_QA = "deepset/xlm-roberta-base-squad2"
 _DEFAULT_SENTIMENT = "nlptown/bert-base-multilingual-uncased-sentiment"
+_DEFAULT_NER = "Davlan/xlm-roberta-base-ner-hrl"
+_DEFAULT_EMBEDDING = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 # Map 1–5 star labels from nlptown model to our canonical labels
 _STAR_TO_LABEL = {
@@ -34,6 +36,8 @@ class TransformersBackend(Backend):
         summarizer_model: str = _DEFAULT_SUMMARIZER,
         qa_model: str = _DEFAULT_QA,
         sentiment_model: str = _DEFAULT_SENTIMENT,
+        ner_model: str = _DEFAULT_NER,
+        embedding_model: str = _DEFAULT_EMBEDDING,
         device: str | None = None,
     ):
         try:
@@ -47,12 +51,16 @@ class TransformersBackend(Backend):
         self._summarizer_model = summarizer_model
         self._qa_model = qa_model
         self._sentiment_model = sentiment_model
+        self._ner_model = ner_model
+        self._embedding_model = embedding_model
         self._device = device
 
         # Pipelines are lazy-loaded on first use
         self._sum_pipe = None
         self._qa_pipe = None
         self._sent_pipe = None
+        self._ner_pipe = None
+        self._embed_pipe = None
 
     def _get_sum_pipe(self):
         if self._sum_pipe is None:
@@ -71,6 +79,23 @@ class TransformersBackend(Backend):
             kw = {} if self._device is None else {"device": self._device}
             self._sent_pipe = self._pipeline("text-classification", model=self._sentiment_model, **kw)
         return self._sent_pipe
+
+    def _get_ner_pipe(self):
+        if self._ner_pipe is None:
+            kw = {} if self._device is None else {"device": self._device}
+            self._ner_pipe = self._pipeline(
+                "token-classification", model=self._ner_model,
+                aggregation_strategy="simple", **kw,
+            )
+        return self._ner_pipe
+
+    def _get_embed_pipe(self):
+        if self._embed_pipe is None:
+            kw = {} if self._device is None else {"device": self._device}
+            self._embed_pipe = self._pipeline(
+                "feature-extraction", model=self._embedding_model, **kw,
+            )
+        return self._embed_pipe
 
     def summarize(self, text: str, *, max_sentences: int = 3, language: str = "bengali") -> str:
         # mT5_multilingual_XLSum expects a language prefix
@@ -96,3 +121,27 @@ class TransformersBackend(Backend):
             "score": round(float(result["score"]), 4),
             "explanation": "",  # model doesn't produce explanations
         }
+
+    def ner(self, text: str) -> list[dict[str, str | float]]:
+        results = self._get_ner_pipe()(text)
+        return [
+            {
+                "text": r["word"],
+                "type": r["entity_group"],
+                "score": round(float(r["score"]), 4),
+            }
+            for r in results
+        ]
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        if isinstance(texts, str):
+            texts = [texts]
+        pipe = self._get_embed_pipe()
+        vectors: list[list[float]] = []
+        for t in texts:
+            # feature-extraction returns [tokens][hidden]; mean-pool over tokens
+            token_vecs = pipe(t, truncation=True)[0]
+            dim = len(token_vecs[0])
+            pooled = [sum(tok[d] for tok in token_vecs) / len(token_vecs) for d in range(dim)]
+            vectors.append(pooled)
+        return vectors

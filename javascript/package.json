@@ -1,18 +1,22 @@
 {
   "name": "bangla-ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AI-powered NLP toolkit for the Bengali language",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "type": "module",
   "exports": {
     ".": "./src/index.js",
     "./text": "./src/text/index.js"
   },
+  "bin": {
+    "bangla-ai": "bin/bangla-ai.js"
+  },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "example": "node examples/basic_usage.js"
   },
-  "files": ["src", "README.md"],
+  "files": ["src", "bin", "README.md"],
   "engines": {
     "node": ">=18"
   },

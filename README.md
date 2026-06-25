@@ -24,9 +24,14 @@ Bengali (বাংলা) is spoken by 230+ million people yet remains severely 
 | `text.tokenize` | Word & sentence tokenizer for Bengali text | nothing |
 | `text.stopwords` | 150+ curated Bengali stopwords + `remove_stopwords()` | nothing |
 | `text.stem` | Suffix-stripping stemmer (verbal + nominal inflections) | nothing |
+| `text.to_latin` / `text.to_bengali` | Transliteration (Banglish ↔ Bengali) | nothing |
+| `text.to_english_digits` / `text.to_bengali_digits` | Numeral conversion (০-৯ ↔ 0-9) | nothing |
 | `BanglaAI.summarize` | Summarize Bengali passages | HF or OpenAI |
 | `BanglaAI.qa` | Question answering from Bengali context | HF or OpenAI |
 | `BanglaAI.sentiment` | Positive / negative / neutral classification | HF or OpenAI |
+| `BanglaAI.ner` | Named entity recognition (PER/LOC/ORG/MISC) | HF or OpenAI |
+| `BanglaAI.embed` / `BanglaAI.semantic_search` | Embeddings & semantic search | HF or OpenAI |
+| `bangla-ai` CLI | Run any task from the terminal | nothing (text) |
 
 ---
 
@@ -71,6 +76,21 @@ stems = text.stem_tokens(filtered)
 # করেছেন -> কর | বাংলাদেশের -> বাংলাদেশ | যাচ্ছে -> যা
 ```
 
+### Transliteration & numerals
+
+```python
+from bangla_ai import text
+
+text.to_latin("বাংলাদেশ")        # 'bangladesh'  (romanization, schwa-aware)
+text.to_bengali("bangla")        # 'বাংলা'        (phonetic Banglish input)
+text.to_english_digits("২০২৪")   # '2024'
+text.to_bengali_digits("2024")   # '২০২৪'
+```
+
+Transliteration is **approximate** by design (Bengali ↔ Latin has no lossless
+mapping); it targets the common chat/search cases. See the test suite for the
+guaranteed examples.
+
 ### ML tasks
 
 ```python
@@ -90,7 +110,31 @@ print(ai.qa(passage, "বাংলাদেশের রাজধানী ক�
 result = ai.sentiment("আজকের দিনটি অসাধারণ ছিল!")
 print(result["label"])   # "positive"
 print(result["score"])   # 0.97
+
+# Named entity recognition
+print(ai.ner("ড. মুহাম্মদ ইউনূস ঢাকায় জন্মগ্রহণ করেন।"))
+# [{"text": "মুহাম্মদ ইউনূস", "type": "PER", ...}, {"text": "ঢাকা", "type": "LOC", ...}]
+
+# Semantic search over Bengali documents
+docs = ["ঢাকা বাংলাদেশের রাজধানী।", "আমি ভাত খেতে ভালোবাসি।"]
+print(ai.semantic_search("দেশের রাজধানী", docs, top_k=1))
+# [{"document": "ঢাকা বাংলাদেশের রাজধানী।", "score": 0.82, "index": 0}]
 ```
+
+### Command line
+
+```bash
+# Text utilities — zero dependencies
+bangla-ai normalize "বাংলা   টেক্সট"
+bangla-ai translit --to latin "বাংলাদেশ"
+bangla-ai digits --to bn "2024"
+echo "ঢাকা একটি শহর।" | bangla-ai tokenize -
+
+# ML tasks — choose a backend
+bangla-ai sentiment "আজকের দিনটি অসাধারণ ছিল!" --backend openai --api-key sk-...
+```
+
+The JavaScript package ships the same `bangla-ai` CLI.
 
 ### Tests
 
@@ -166,16 +210,22 @@ Swap models at construction time via `summarizerModel`, `qaModel`, `sentimentMod
 bangla-ai-toolkit/
 ├── python/
 │   ├── bangla_ai/
-│   │   ├── text/         # normalize, tokenize, stopwords, stem
+│   │   ├── text/         # normalize, tokenize, stopwords, stem, translit, numerals
 │   │   ├── backends/     # hf.py, openai.py (lazy-loaded)
-│   │   └── core.py
+│   │   ├── semantic.py   # cosine / ranking helpers
+│   │   ├── core.py
+│   │   └── __main__.py   # CLI
+│   ├── benchmarks/       # evaluation harness + dataset
 │   ├── tests/
 │   └── pyproject.toml
 ├── javascript/
 │   ├── src/
 │   │   ├── text/
 │   │   ├── backends/
-│   │   └── client.js
+│   │   ├── semantic.js
+│   │   ├── client.js
+│   │   └── index.d.ts    # TypeScript types
+│   ├── bin/              # CLI
 │   ├── tests/
 │   └── package.json
 └── docs/API.md

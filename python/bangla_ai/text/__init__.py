@@ -4,6 +4,8 @@ from .normalize import normalize
 from .tokenize import tokenize, sent_tokenize
 from .stopwords import STOPWORDS, remove_stopwords
 from .stem import stem, stem_tokens
+from .numerals import to_english_digits, to_bengali_digits
+from .translit import to_latin, to_bengali
 
 __all__ = [
     "normalize",
@@ -13,4 +15,8 @@ __all__ = [
     "remove_stopwords",
     "stem",
     "stem_tokens",
+    "to_english_digits",
+    "to_bengali_digits",
+    "to_latin",
+    "to_bengali",
 ]

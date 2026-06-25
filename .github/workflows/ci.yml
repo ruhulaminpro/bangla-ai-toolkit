@@ -21,10 +21,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install
-        run: pip install -e ".[dev]"
-      - name: Run text-utility tests (no API key)
-        run: pytest tests/test_text.py -v
+      - name: Install (core only — ML extras not needed for unit tests)
+        run: |
+          pip install -e .
+          pip install pytest
+      - name: Run tests (API/model-gated tests skip without keys)
+        run: pytest tests/ -v
 
   build-python:
     name: Build Python package
