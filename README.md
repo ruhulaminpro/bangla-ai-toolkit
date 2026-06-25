@@ -1,5 +1,10 @@
 # bangla-ai-toolkit
 
+[![CI](https://github.com/ruhulaminpro/bangla-ai-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ruhulaminpro/bangla-ai-toolkit/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/bangla-ai.svg)](https://pypi.org/project/bangla-ai/)
+[![npm](https://img.shields.io/npm/v/bangla-ai.svg)](https://www.npmjs.com/package/bangla-ai)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 AI-powered NLP toolkit for the Bengali language — **model-agnostic, zero-dependency text utilities, and pluggable ML backends**.
 
 Bengali (বাংলা) is spoken by 230+ million people yet remains severely underrepresented in AI tooling. This toolkit fills real gaps:
